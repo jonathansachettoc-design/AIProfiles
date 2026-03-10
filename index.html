@@ -1,0 +1,1430 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AI Content Intelligence Hub</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Mono:wght@300;400;500&family=Instrument+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #080b10;
+    --surface: #0e1219;
+    --surface2: #141923;
+    --border: #1e2733;
+    --accent: #00e5ff;
+    --accent2: #7b61ff;
+    --accent3: #ff4d6d;
+    --text: #e8edf5;
+    --muted: #5a6478;
+    --success: #00e5a0;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'Instrument Sans', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* Ambient background */
+  body::before {
+    content: '';
+    position: fixed;
+    top: -200px;
+    left: -200px;
+    width: 600px;
+    height: 600px;
+    background: radial-gradient(circle, rgba(0,229,255,0.04) 0%, transparent 70%);
+    pointer-events: none;
+    z-index: 0;
+  }
+  body::after {
+    content: '';
+    position: fixed;
+    bottom: -200px;
+    right: -200px;
+    width: 500px;
+    height: 500px;
+    background: radial-gradient(circle, rgba(123,97,255,0.05) 0%, transparent 70%);
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  /* HEADER */
+  header {
+    position: relative;
+    z-index: 10;
+    padding: 28px 40px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: rgba(8,11,16,0.8);
+    backdrop-filter: blur(20px);
+  }
+
+  .logo {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .logo-icon {
+    width: 36px;
+    height: 36px;
+    background: linear-gradient(135deg, var(--accent), var(--accent2));
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+  }
+
+  .logo-text {
+    font-family: 'Syne', sans-serif;
+    font-weight: 800;
+    font-size: 18px;
+    letter-spacing: -0.5px;
+  }
+
+  .logo-text span {
+    color: var(--accent);
+  }
+
+  .header-badge {
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    color: var(--accent);
+    background: rgba(0,229,255,0.08);
+    border: 1px solid rgba(0,229,255,0.2);
+    padding: 5px 12px;
+    border-radius: 20px;
+    letter-spacing: 1px;
+  }
+
+  /* NAV TABS */
+  .nav {
+    position: relative;
+    z-index: 10;
+    display: flex;
+    padding: 0 40px;
+    border-bottom: 1px solid var(--border);
+    background: var(--bg);
+    gap: 0;
+  }
+
+  .nav-tab {
+    font-family: 'DM Mono', monospace;
+    font-size: 12px;
+    letter-spacing: 0.5px;
+    color: var(--muted);
+    padding: 18px 24px;
+    cursor: pointer;
+    border-bottom: 2px solid transparent;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    text-transform: uppercase;
+    background: none;
+    border-top: none;
+    border-left: none;
+    border-right: none;
+    white-space: nowrap;
+  }
+
+  .nav-tab:hover { color: var(--text); }
+  .nav-tab.active {
+    color: var(--accent);
+    border-bottom-color: var(--accent);
+  }
+
+  .tab-num {
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    background: var(--surface2);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 10px;
+  }
+  .nav-tab.active .tab-num {
+    background: rgba(0,229,255,0.15);
+    color: var(--accent);
+  }
+
+  /* MAIN */
+  main {
+    position: relative;
+    z-index: 5;
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 40px 40px;
+  }
+
+  .panel { display: none; }
+  .panel.active { display: block; animation: fadeIn 0.3s ease; }
+
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(8px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  /* PANEL HEADERS */
+  .panel-header {
+    margin-bottom: 32px;
+  }
+
+  .panel-label {
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    color: var(--accent);
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    margin-bottom: 10px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .panel-label::before {
+    content: '';
+    width: 20px;
+    height: 1px;
+    background: var(--accent);
+  }
+
+  .panel-title {
+    font-family: 'Syne', sans-serif;
+    font-size: 32px;
+    font-weight: 800;
+    letter-spacing: -1px;
+    line-height: 1.1;
+    margin-bottom: 12px;
+  }
+
+  .panel-desc {
+    color: var(--muted);
+    font-size: 15px;
+    line-height: 1.6;
+    max-width: 580px;
+  }
+
+  /* === PANEL 1: BENCHMARK === */
+  .creator-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+    margin-bottom: 32px;
+  }
+
+  @media (max-width: 700px) { .creator-grid { grid-template-columns: 1fr; } }
+
+  .creator-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 20px;
+    cursor: pointer;
+    transition: all 0.2s;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .creator-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 2px;
+    background: linear-gradient(90deg, transparent, var(--accent), transparent);
+    opacity: 0;
+    transition: opacity 0.3s;
+  }
+
+  .creator-card:hover { border-color: rgba(0,229,255,0.3); transform: translateY(-2px); }
+  .creator-card:hover::before { opacity: 1; }
+  .creator-card.selected {
+    border-color: var(--accent);
+    background: rgba(0,229,255,0.04);
+  }
+  .creator-card.selected::before { opacity: 1; }
+
+  .creator-top {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 14px;
+  }
+
+  .creator-avatar {
+    width: 44px;
+    height: 44px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 20px;
+    flex-shrink: 0;
+  }
+
+  .creator-info { flex: 1; min-width: 0; }
+
+  .creator-handle {
+    font-family: 'DM Mono', monospace;
+    font-size: 13px;
+    color: var(--accent);
+    font-weight: 500;
+    margin-bottom: 2px;
+  }
+
+  .creator-name {
+    font-size: 13px;
+    color: var(--muted);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .creator-flag {
+    font-size: 20px;
+  }
+
+  .creator-stats {
+    display: flex;
+    gap: 16px;
+    margin-bottom: 12px;
+  }
+
+  .stat {
+    text-align: center;
+  }
+
+  .stat-val {
+    font-family: 'Syne', sans-serif;
+    font-size: 15px;
+    font-weight: 700;
+    color: var(--text);
+  }
+
+  .stat-label {
+    font-size: 10px;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-top: 1px;
+    font-family: 'DM Mono', monospace;
+  }
+
+  .creator-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+
+  .tag {
+    font-size: 10px;
+    font-family: 'DM Mono', monospace;
+    padding: 3px 8px;
+    border-radius: 4px;
+    background: var(--surface2);
+    color: var(--muted);
+    border: 1px solid var(--border);
+  }
+
+  /* Benchmark Generator */
+  .benchmark-box {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    overflow: hidden;
+  }
+
+  .benchmark-box-header {
+    padding: 20px 24px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .benchmark-box-title {
+    font-family: 'Syne', sans-serif;
+    font-weight: 700;
+    font-size: 15px;
+  }
+
+  .selected-count {
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    color: var(--accent);
+    background: rgba(0,229,255,0.1);
+    padding: 4px 10px;
+    border-radius: 20px;
+  }
+
+  .benchmark-controls {
+    padding: 20px 24px;
+    display: flex;
+    gap: 12px;
+    align-items: center;
+    flex-wrap: wrap;
+  }
+
+  .format-select {
+    flex: 1;
+    min-width: 160px;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 10px 14px;
+    color: var(--text);
+    font-family: 'Instrument Sans', sans-serif;
+    font-size: 14px;
+    outline: none;
+    cursor: pointer;
+  }
+
+  .format-select:focus { border-color: var(--accent); }
+
+  .btn {
+    font-family: 'DM Mono', monospace;
+    font-size: 12px;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+    padding: 10px 20px;
+    border-radius: 10px;
+    cursor: pointer;
+    border: none;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    white-space: nowrap;
+  }
+
+  .btn-primary {
+    background: var(--accent);
+    color: #000;
+    font-weight: 500;
+  }
+
+  .btn-primary:hover { background: #00ccee; transform: translateY(-1px); }
+  .btn-primary:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+
+  .btn-secondary {
+    background: var(--surface2);
+    color: var(--text);
+    border: 1px solid var(--border);
+  }
+
+  .btn-secondary:hover { border-color: var(--accent); color: var(--accent); }
+
+  /* AI Output */
+  .ai-output {
+    min-height: 120px;
+    padding: 24px;
+    border-top: 1px solid var(--border);
+    display: none;
+  }
+
+  .ai-output.visible { display: block; }
+
+  .ai-output-label {
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    color: var(--accent2);
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    margin-bottom: 14px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .ai-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--accent2);
+    animation: pulse 1.5s infinite;
+  }
+
+  @keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.3; }
+  }
+
+  .ai-text {
+    font-size: 14px;
+    line-height: 1.8;
+    color: var(--text);
+    white-space: pre-wrap;
+  }
+
+  /* === PANEL 2: AGENDA === */
+  .agenda-controls {
+    display: flex;
+    gap: 12px;
+    margin-bottom: 28px;
+    flex-wrap: wrap;
+  }
+
+  .niche-btn {
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+    padding: 8px 16px;
+    border-radius: 8px;
+    cursor: pointer;
+    border: 1px solid var(--border);
+    background: var(--surface);
+    color: var(--muted);
+    transition: all 0.2s;
+  }
+
+  .niche-btn:hover { color: var(--text); border-color: var(--text); }
+  .niche-btn.active { background: rgba(0,229,255,0.1); border-color: var(--accent); color: var(--accent); }
+
+  .week-grid {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 10px;
+    margin-bottom: 28px;
+  }
+
+  @media (max-width: 700px) { .week-grid { grid-template-columns: repeat(3, 1fr); } }
+
+  .day-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 14px 10px;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.2s;
+    position: relative;
+  }
+
+  .day-card:hover { border-color: rgba(0,229,255,0.3); }
+  .day-card.selected { border-color: var(--accent); background: rgba(0,229,255,0.05); }
+
+  .day-name {
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    color: var(--muted);
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    margin-bottom: 6px;
+  }
+
+  .day-num {
+    font-family: 'Syne', sans-serif;
+    font-weight: 700;
+    font-size: 20px;
+    color: var(--text);
+  }
+
+  .day-dot {
+    width: 5px;
+    height: 5px;
+    border-radius: 50%;
+    background: var(--accent);
+    margin: 6px auto 0;
+    opacity: 0;
+  }
+
+  .day-card.has-content .day-dot { opacity: 1; }
+
+  .agenda-output-box {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    overflow: hidden;
+  }
+
+  .agenda-output-header {
+    padding: 18px 24px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .agenda-slots {
+    padding: 20px 24px;
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 14px;
+  }
+
+  @media (max-width: 600px) { .agenda-slots { grid-template-columns: 1fr; } }
+
+  .slot-card {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 14px;
+  }
+
+  .slot-platform {
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-bottom: 6px;
+  }
+
+  .slot-topic {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text);
+    line-height: 1.4;
+    margin-bottom: 8px;
+  }
+
+  .slot-format {
+    display: inline-block;
+    font-size: 10px;
+    font-family: 'DM Mono', monospace;
+    padding: 2px 8px;
+    border-radius: 4px;
+    background: rgba(123,97,255,0.15);
+    color: var(--accent2);
+    border: 1px solid rgba(123,97,255,0.3);
+  }
+
+  /* Agenda Generate section */
+  .agenda-gen-section {
+    padding: 20px 24px;
+    border-top: 1px solid var(--border);
+    display: flex;
+    gap: 12px;
+    align-items: center;
+  }
+
+  /* === PANEL 3: DIFERENCIAL === */
+  .diferencial-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+    margin-bottom: 28px;
+  }
+
+  @media (max-width: 600px) { .diferencial-grid { grid-template-columns: 1fr; } }
+
+  .angle-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 22px;
+    cursor: pointer;
+    transition: all 0.2s;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .angle-card:hover { transform: translateY(-2px); border-color: rgba(255,77,109,0.3); }
+  .angle-card.selected { border-color: var(--accent3); background: rgba(255,77,109,0.04); }
+
+  .angle-icon {
+    font-size: 28px;
+    margin-bottom: 12px;
+  }
+
+  .angle-title {
+    font-family: 'Syne', sans-serif;
+    font-weight: 700;
+    font-size: 15px;
+    margin-bottom: 6px;
+  }
+
+  .angle-desc {
+    font-size: 13px;
+    color: var(--muted);
+    line-height: 1.5;
+  }
+
+  .checkmark {
+    position: absolute;
+    top: 16px;
+    right: 16px;
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    border: 2px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+    transition: all 0.2s;
+  }
+
+  .angle-card.selected .checkmark {
+    background: var(--accent3);
+    border-color: var(--accent3);
+    color: white;
+  }
+
+  .diferencial-form {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    overflow: hidden;
+  }
+
+  .form-header {
+    padding: 18px 24px;
+    border-bottom: 1px solid var(--border);
+    font-family: 'Syne', sans-serif;
+    font-weight: 700;
+    font-size: 15px;
+  }
+
+  .form-body {
+    padding: 20px 24px;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+  }
+
+  .form-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+  }
+
+  @media (max-width: 600px) { .form-row { grid-template-columns: 1fr; } }
+
+  .input-group { display: flex; flex-direction: column; gap: 6px; }
+
+  .input-label {
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+  }
+
+  .input-field, .textarea-field {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 10px 14px;
+    color: var(--text);
+    font-family: 'Instrument Sans', sans-serif;
+    font-size: 14px;
+    outline: none;
+    transition: border-color 0.2s;
+    width: 100%;
+  }
+
+  .input-field:focus, .textarea-field:focus { border-color: var(--accent); }
+
+  .textarea-field {
+    resize: vertical;
+    min-height: 80px;
+    font-size: 13px;
+  }
+
+  .form-footer {
+    padding: 16px 24px;
+    border-top: 1px solid var(--border);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .form-hint {
+    font-size: 12px;
+    color: var(--muted);
+    font-family: 'DM Mono', monospace;
+  }
+
+  /* Loading spinner */
+  .spinner {
+    display: inline-block;
+    width: 14px;
+    height: 14px;
+    border: 2px solid rgba(0,0,0,0.2);
+    border-top-color: #000;
+    border-radius: 50%;
+    animation: spin 0.6s linear infinite;
+  }
+
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  /* Content blocks in AI output */
+  .content-block {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 16px 20px;
+    margin-bottom: 12px;
+  }
+
+  .content-block-title {
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    color: var(--accent);
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    margin-bottom: 10px;
+  }
+
+  .content-block-body {
+    font-size: 14px;
+    line-height: 1.8;
+    color: var(--text);
+    white-space: pre-wrap;
+  }
+
+  /* Copy button */
+  .copy-btn {
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    color: var(--muted);
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 4px 10px;
+    cursor: pointer;
+    transition: all 0.2s;
+    float: right;
+    margin-top: -4px;
+  }
+
+  .copy-btn:hover { color: var(--accent); border-color: var(--accent); }
+  .copy-btn.copied { color: var(--success); border-color: var(--success); }
+
+  /* Error state */
+  .error-msg {
+    background: rgba(255,77,109,0.08);
+    border: 1px solid rgba(255,77,109,0.3);
+    border-radius: 10px;
+    padding: 14px 18px;
+    font-size: 13px;
+    color: #ff8fa3;
+  }
+
+  /* Placeholder state */
+  .placeholder-state {
+    padding: 40px 24px;
+    text-align: center;
+    color: var(--muted);
+    font-size: 14px;
+  }
+
+  .placeholder-icon { font-size: 36px; margin-bottom: 12px; }
+  .placeholder-text { line-height: 1.6; }
+
+  /* Scrollbar */
+  ::-webkit-scrollbar { width: 6px; }
+  ::-webkit-scrollbar-track { background: var(--bg); }
+  ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo">
+    <div class="logo-icon">⚡</div>
+    <div class="logo-text">Content<span>Intel</span></div>
+  </div>
+  <div class="header-badge">@jonathansachetto</div>
+</header>
+
+<nav class="nav">
+  <button class="nav-tab active" onclick="switchTab('benchmark')">
+    <span class="tab-num">01</span> Benchmark de Formato
+  </button>
+  <button class="nav-tab" onclick="switchTab('agenda')">
+    <span class="tab-num">02</span> Agenda de Pautas
+  </button>
+  <button class="nav-tab" onclick="switchTab('diferencial')">
+    <span class="tab-num">03</span> Meu Diferencial
+  </button>
+</nav>
+
+<main>
+
+  <!-- PANEL 1: BENCHMARK -->
+  <div id="panel-benchmark" class="panel active">
+    <div class="panel-header">
+      <div class="panel-label">Passo 01</div>
+      <h1 class="panel-title">Benchmark de Formato</h1>
+      <p class="panel-desc">Selecione um ou mais criadores de referência, escolha o formato de conteúdo e receba uma análise completa de como replicar o estilo com seu diferencial.</p>
+    </div>
+
+    <div class="creator-grid" id="creatorGrid"></div>
+
+    <div class="benchmark-box">
+      <div class="benchmark-box-header">
+        <span class="benchmark-box-title">Analisar Formato</span>
+        <span class="selected-count" id="selectedCount">0 selecionados</span>
+      </div>
+      <div class="benchmark-controls">
+        <select class="format-select" id="formatSelect">
+          <option value="">Selecione o formato...</option>
+          <option value="Reels 30s">🎬 Reels 30 segundos</option>
+          <option value="Carrossel educativo">📊 Carrossel educativo</option>
+          <option value="Post único de opinião">💬 Post único de opinião</option>
+          <option value="Stories sequência">📱 Stories em sequência</option>
+          <option value="Reel de tendência com comentário">🔥 Reel de tendência com comentário</option>
+        </select>
+        <button class="btn btn-primary" id="benchmarkBtn" onclick="runBenchmark()" disabled>
+          <span>Analisar</span>
+        </button>
+        <button class="btn btn-secondary" onclick="clearBenchmark()">Limpar</button>
+      </div>
+      <div class="ai-output" id="benchmarkOutput">
+        <div class="placeholder-state">
+          <div class="placeholder-icon">🔍</div>
+          <div class="placeholder-text">Selecione criadores e um formato para gerar a análise</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- PANEL 2: AGENDA -->
+  <div id="panel-agenda" class="panel">
+    <div class="panel-header">
+      <div class="panel-label">Passo 02</div>
+      <h1 class="panel-title">Agenda de Pautas</h1>
+      <p class="panel-desc">O que performa lá fora vira pauta sua com antecedência. Selecione o nicho, escolha os dias da semana e gere sua agenda editorial com tópicos validados.</p>
+    </div>
+
+    <div class="agenda-controls">
+      <button class="niche-btn active" onclick="selectNiche(this, 'IA aplicada a negócios')">🤖 IA & Negócios</button>
+      <button class="niche-btn" onclick="selectNiche(this, 'Marketing Digital')">📈 Marketing Digital</button>
+      <button class="niche-btn" onclick="selectNiche(this, 'Crypto & Web3')">₿ Crypto</button>
+      <button class="niche-btn" onclick="selectNiche(this, 'Agência & Empreendedorismo')">🏢 Agência</button>
+      <button class="niche-btn" onclick="selectNiche(this, 'Automação e ferramentas de IA')">⚙️ Automação</button>
+    </div>
+
+    <div class="week-grid" id="weekGrid"></div>
+
+    <div class="agenda-output-box">
+      <div class="agenda-output-header">
+        <span class="benchmark-box-title">Agenda da Semana</span>
+        <span id="agendaNicheLabel" class="selected-count">🤖 IA & Negócios</span>
+      </div>
+      <div class="agenda-gen-section">
+        <button class="btn btn-primary" onclick="generateAgenda()">
+          <span>⚡ Gerar Agenda Completa</span>
+        </button>
+        <button class="btn btn-secondary" onclick="clearAgenda()">Limpar</button>
+        <span id="agendaHint" style="font-family: 'DM Mono', monospace; font-size: 11px; color: var(--muted);">Selecione os dias que deseja pautar</span>
+      </div>
+      <div class="ai-output" id="agendaOutput">
+        <div class="placeholder-state">
+          <div class="placeholder-icon">📅</div>
+          <div class="placeholder-text">Selecione o nicho e clique em Gerar Agenda</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- PANEL 3: DIFERENCIAL -->
+  <div id="panel-diferencial" class="panel">
+    <div class="panel-header">
+      <div class="panel-label">Passo 03</div>
+      <h1 class="panel-title">Meu Diferencial</h1>
+      <p class="panel-desc">Crie conteúdo explorandos o cruzamento único de Marketing Digital + IA + visão de agência — o espaço que ninguém no Brasil ocupa com a sua profundidade.</p>
+    </div>
+
+    <div class="diferencial-grid">
+      <div class="angle-card" onclick="selectAngle(this, 'Agência + IA: nos bastidores')">
+        <div class="checkmark">✓</div>
+        <div class="angle-icon">🏗️</div>
+        <div class="angle-title">Agência + IA: Nos bastidores</div>
+        <div class="angle-desc">Mostre como você usa IA no dia a dia da agência — automação, produção, briefing, entrega. Real, cru, sem filtro.</div>
+      </div>
+      <div class="angle-card" onclick="selectAngle(this, 'Opinião provocadora sobre o mercado')">
+        <div class="checkmark">✓</div>
+        <div class="angle-icon">🎯</div>
+        <div class="angle-title">Opinião provocadora</div>
+        <div class="angle-desc">Ponto de vista contrário ao senso comum do marketing digital. Você já viu o mercado por dentro — use isso.</div>
+      </div>
+      <div class="angle-card" onclick="selectAngle(this, 'Tutorial de ferramenta de IA aplicada a marketing')">
+        <div class="checkmark">✓</div>
+        <div class="angle-icon">🛠️</div>
+        <div class="angle-title">Tutorial de ferramenta IA</div>
+        <div class="angle-desc">Demonstração prática de como usar uma ferramenta de IA para resolver um problema real de marketing ou vendas.</div>
+      </div>
+      <div class="angle-card" onclick="selectAngle(this, 'Tendência internacional traduzida para o Brasil')">
+        <div class="checkmark">✓</div>
+        <div class="angle-icon">🌐</div>
+        <div class="angle-title">Tendência internacional BR</div>
+        <div class="angle-desc">O que está bombando lá fora com IA e marketing — e o que isso significa para o empreendedor brasileiro agora.</div>
+      </div>
+    </div>
+
+    <div class="diferencial-form">
+      <div class="form-header">Gerar Conteúdo Diferenciado</div>
+      <div class="form-body">
+        <div class="form-row">
+          <div class="input-group">
+            <label class="input-label">Ângulo selecionado</label>
+            <input class="input-field" id="angleInput" placeholder="Clique em um card acima..." readonly>
+          </div>
+          <div class="input-group">
+            <label class="input-label">Formato de entrega</label>
+            <select class="input-field" id="formatoEntrega">
+              <option value="Roteiro de Reels 30s">🎬 Roteiro de Reels 30s</option>
+              <option value="Legenda de Feed">📝 Legenda de Feed</option>
+              <option value="Sequência de Stories">📱 Sequência de Stories</option>
+              <option value="Carrossel com 5 slides">📊 Carrossel 5 slides</option>
+              <option value="Post completo com todos os formatos">🚀 Pacote completo (todos os formatos)</option>
+            </select>
+          </div>
+        </div>
+        <div class="input-group">
+          <label class="input-label">Tema ou ideia bruta (opcional)</label>
+          <textarea class="textarea-field" id="temaInput" placeholder="Ex: Como criei um chatbot de qualificação de leads para imóveis usando IA em 3 dias..."></textarea>
+        </div>
+        <div class="input-group">
+          <label class="input-label">Tom de voz</label>
+          <select class="input-field" id="tomVoz">
+            <option value="direto e provocador">⚡ Direto e provocador</option>
+            <option value="educativo com autoridade">🎓 Educativo com autoridade</option>
+            <option value="confessional e real">🔓 Confessional e real</option>
+            <option value="visionário e ambicioso">🚀 Visionário e ambicioso</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-footer">
+        <span class="form-hint" id="formHint">Selecione um ângulo para começar</span>
+        <div style="display: flex; gap: 10px;">
+          <button class="btn btn-secondary" onclick="clearDiferencial()">Limpar</button>
+          <button class="btn btn-primary" id="diferencialBtn" onclick="runDiferencial()" disabled>
+            <span>⚡ Gerar Conteúdo</span>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <div class="ai-output" id="diferencialOutput" style="display: none; margin-top: 16px; background: var(--surface); border: 1px solid var(--border); border-radius: 16px; padding: 24px;">
+      <div class="placeholder-state">
+        <div class="placeholder-icon">✍️</div>
+        <div class="placeholder-text">Configure e clique em Gerar Conteúdo</div>
+      </div>
+    </div>
+  </div>
+
+</main>
+
+<script>
+// =====================
+// DATA
+// =====================
+const creators = [
+  { handle: '@vaibhavsisinty', name: 'Vaibhav Sisinty', flag: '🇮🇳', followers: '1.6M', engagement: '4.2%', niche: 'IA + Negócios', emoji: '🚀', tags: ['Growth', 'IA', 'FutureTech'], tier: 'Gringa' },
+  { handle: '@thevarunmayya', name: 'Varun Mayya', flag: '🇮🇳', followers: '1.2M', engagement: '3.8%', niche: 'Tech/IA News', emoji: '⚡', tags: ['Tech', 'IA', 'Startups'], tier: 'Gringa' },
+  { handle: '@tech.unicorn', name: 'Delia Lazarescu', flag: '🇺🇸', followers: '341K', engagement: '16.2%', niche: 'IA Acessível', emoji: '🦄', tags: ['IA', 'Memes', 'Trends'], tier: 'Gringa' },
+  { handle: '@philstringer', name: 'Phil Stringer', flag: '🇺🇸', followers: '76K', engagement: '5.1%', niche: 'IA para leigos', emoji: '🤖', tags: ['Speaker', 'Educação', 'IA'], tier: 'Gringa' },
+  { handle: '@carterpcs_', name: 'Carter Smith', flag: '🇺🇸', followers: '442K', engagement: '1.99%', niche: 'Tech Reviews IA', emoji: '💻', tags: ['Tech', 'IA', 'Reviews'], tier: 'Gringa' },
+  { handle: '@jakebeau_', name: 'Jake Beau', flag: '🇺🇸', followers: '115K', engagement: '3.5%', niche: 'IA + Produtividade', emoji: '🛠️', tags: ['Dev', 'IA', 'Produtividade'], tier: 'Gringa' },
+  { handle: '@matheusaccioly', name: 'Matheus Accioly', flag: '🇧🇷', followers: '85K', engagement: '6.2%', niche: 'IA + Produtividade BR', emoji: '🎯', tags: ['IA BR', 'Ferramentas', 'Negócios'], tier: 'Brasil' },
+  { handle: '@rodrigofernand3s', name: 'Rodrigo Fernandes', flag: '🇧🇷', followers: '62K', engagement: '7.4%', niche: 'IA + Marketing BR', emoji: '📈', tags: ['Marketing', 'IA', 'ChatGPT'], tier: 'Brasil' },
+  { handle: '@rafaelseganfredo', name: 'Rafael Seganfredo', flag: '🇧🇷', followers: '48K', engagement: '5.8%', niche: 'Marketing + IA B2B', emoji: '💼', tags: ['B2B', 'Agência', 'IA'], tier: 'Brasil' },
+  { handle: '@thiagofinch', name: 'Thiago Finch', flag: '🇧🇷', followers: '39K', engagement: '8.1%', niche: 'IA Mercado BR', emoji: '🔥', tags: ['IA BR', 'Mercado', 'Trends'], tier: 'Brasil' },
+];
+
+let selectedCreators = [];
+let selectedNiche = 'IA aplicada a negócios';
+let selectedDays = [];
+let selectedAngle = '';
+
+// =====================
+// INIT
+// =====================
+function initCreatorGrid() {
+  const grid = document.getElementById('creatorGrid');
+  grid.innerHTML = '';
+  creators.forEach((c, i) => {
+    const tierColor = c.tier === 'Gringa' ? '#00e5ff' : '#00e5a0';
+    grid.innerHTML += `
+      <div class="creator-card" onclick="toggleCreator(${i})" id="cc-${i}">
+        <div class="creator-top">
+          <div class="creator-avatar" style="background: linear-gradient(135deg, rgba(0,229,255,0.15), rgba(123,97,255,0.15));">${c.emoji}</div>
+          <div class="creator-info">
+            <div class="creator-handle">${c.handle}</div>
+            <div class="creator-name">${c.name}</div>
+          </div>
+          <div class="creator-flag">${c.flag}</div>
+        </div>
+        <div class="creator-stats">
+          <div class="stat">
+            <div class="stat-val">${c.followers}</div>
+            <div class="stat-label">Seguidores</div>
+          </div>
+          <div class="stat">
+            <div class="stat-val">${c.engagement}</div>
+            <div class="stat-label">Engajamento</div>
+          </div>
+          <div class="stat">
+            <div class="stat-val" style="color: ${tierColor}; font-size: 12px;">${c.tier}</div>
+            <div class="stat-label">Origem</div>
+          </div>
+        </div>
+        <div class="creator-tags">
+          ${c.tags.map(t => `<span class="tag">${t}</span>`).join('')}
+          <span class="tag" style="background: rgba(0,229,255,0.05); color: var(--muted);">${c.niche}</span>
+        </div>
+      </div>
+    `;
+  });
+}
+
+function initWeekGrid() {
+  const days = ['SEG', 'TER', 'QUA', 'QUI', 'SEX', 'SAB', 'DOM'];
+  const nums = ['10', '11', '12', '13', '14', '15', '16'];
+  const grid = document.getElementById('weekGrid');
+  grid.innerHTML = '';
+  days.forEach((d, i) => {
+    grid.innerHTML += `
+      <div class="day-card" onclick="toggleDay(${i})" id="day-${i}">
+        <div class="day-name">${d}</div>
+        <div class="day-num">${nums[i]}</div>
+        <div class="day-dot"></div>
+      </div>
+    `;
+  });
+}
+
+// =====================
+// BENCHMARK PANEL
+// =====================
+function toggleCreator(i) {
+  const card = document.getElementById(`cc-${i}`);
+  const idx = selectedCreators.indexOf(i);
+  if (idx === -1) {
+    selectedCreators.push(i);
+    card.classList.add('selected');
+  } else {
+    selectedCreators.splice(idx, 1);
+    card.classList.remove('selected');
+  }
+  updateBenchmarkBtn();
+}
+
+function updateBenchmarkBtn() {
+  const btn = document.getElementById('benchmarkBtn');
+  const count = document.getElementById('selectedCount');
+  const fmt = document.getElementById('formatSelect').value;
+  count.textContent = `${selectedCreators.length} selecionado${selectedCreators.length !== 1 ? 's' : ''}`;
+  btn.disabled = selectedCreators.length === 0 || !fmt;
+}
+
+document.getElementById('formatSelect').addEventListener('change', updateBenchmarkBtn);
+
+async function runBenchmark() {
+  const fmt = document.getElementById('formatSelect').value;
+  if (!fmt || selectedCreators.length === 0) return;
+
+  const names = selectedCreators.map(i => creators[i].handle).join(', ');
+  const niches = selectedCreators.map(i => creators[i].niche).join(', ');
+
+  const btn = document.getElementById('benchmarkBtn');
+  btn.disabled = true;
+  btn.innerHTML = '<span class="spinner"></span> Analisando...';
+
+  const output = document.getElementById('benchmarkOutput');
+  output.classList.add('visible');
+  output.innerHTML = `<div class="ai-output-label"><div class="ai-dot"></div>Claude analisando padrões...</div>`;
+
+  const prompt = `Você é um estrategista de conteúdo especialista em crescimento no Instagram. Analise os seguintes criadores de conteúdo de IA/tech: ${names} (niches: ${niches}).
+
+O usuário quer criar conteúdo no formato: "${fmt}"
+Perfil do usuário: @jonathansachetto — empreendedor brasileiro, fundador de agência de marketing digital com especialidade em IA, crypto e marketing. Quer construir autoridade no Brasil nesse nicho.
+
+Forneça uma análise estruturada com:
+
+1. PADRÃO DE ESTRUTURA DO FORMATO
+Como esses criadores estruturam o "${fmt}" — gancho, desenvolvimento, CTA. Seja específico e prático.
+
+2. ELEMENTOS QUE MAIS ENGAJAM
+Quais elementos visuais, textuais e de storytelling fazem esse formato performar bem nesses criadores.
+
+3. TEMPLATE ADAPTADO PARA @jonathansachetto
+Um template de "${fmt}" já no tom e nicho dele (marketing digital + IA + visão de agência no Brasil). Pronto para usar.
+
+4. O QUE EVITAR
+3 erros comuns que outros criadores brasileiros cometem nesse formato.
+
+Seja direto, prático e orientado a performance. Use português brasileiro.`;
+
+  try {
+    const resp = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-20250514',
+        max_tokens: 1000,
+        messages: [{ role: 'user', content: prompt }]
+      })
+    });
+    const data = await resp.json();
+    const text = data.content[0].text;
+    renderOutputBlocks(output, text, fmt);
+  } catch(e) {
+    output.innerHTML = `<div class="error-msg">⚠️ Erro ao conectar com a API. Verifique sua conexão e tente novamente.</div>`;
+  }
+
+  btn.disabled = false;
+  btn.innerHTML = '<span>Analisar</span>';
+}
+
+function clearBenchmark() {
+  selectedCreators = [];
+  document.querySelectorAll('.creator-card').forEach(c => c.classList.remove('selected'));
+  document.getElementById('selectedCount').textContent = '0 selecionados';
+  document.getElementById('benchmarkBtn').disabled = true;
+  document.getElementById('formatSelect').value = '';
+  const output = document.getElementById('benchmarkOutput');
+  output.classList.remove('visible');
+  output.innerHTML = '';
+}
+
+// =====================
+// AGENDA PANEL
+// =====================
+const dayNames = ['Segunda', 'Terça', 'Quarta', 'Quinta', 'Sexta', 'Sábado', 'Domingo'];
+
+function selectNiche(el, niche) {
+  document.querySelectorAll('.niche-btn').forEach(b => b.classList.remove('active'));
+  el.classList.add('active');
+  selectedNiche = niche;
+  document.getElementById('agendaNicheLabel').textContent = el.textContent;
+}
+
+function toggleDay(i) {
+  const card = document.getElementById(`day-${i}`);
+  const idx = selectedDays.indexOf(i);
+  if (idx === -1) {
+    selectedDays.push(i);
+    card.classList.add('selected', 'has-content');
+  } else {
+    selectedDays.splice(idx, 1);
+    card.classList.remove('selected', 'has-content');
+  }
+}
+
+async function generateAgenda() {
+  const daysStr = selectedDays.length > 0
+    ? selectedDays.map(i => dayNames[i]).join(', ')
+    : 'todos os dias úteis da semana';
+
+  const btn = document.querySelector('#panel-agenda .btn-primary');
+  btn.disabled = true;
+  btn.innerHTML = '<span class="spinner"></span> Gerando...';
+
+  const output = document.getElementById('agendaOutput');
+  output.classList.add('visible');
+  output.innerHTML = `<div class="ai-output-label"><div class="ai-dot"></div>Montando agenda editorial...</div>`;
+
+  const prompt = `Você é um estrategista editorial especializado em crescimento no Instagram para criadores de conteúdo de tecnologia/IA no Brasil.
+
+Crie uma agenda editorial completa para @jonathansachetto com as seguintes especificações:
+- Nicho principal: ${selectedNiche}
+- Dias para pautar: ${daysStr}
+- Perfil: empreendedor brasileiro, fundador de agência de marketing digital com especialidade em IA e crypto
+- Meta: construir autoridade como a maior referência de IA aplicada a marketing digital no Brasil
+- Tom: direto, provocador, sem autoajuda, baseado em resultados reais
+
+Para cada dia selecionado, forneça:
+• TEMA DO DIA: tópico específico e atual
+• FORMATO: qual formato usar (Reels 30s, Carrossel, Post único, Story)
+• ÂNGULO: qual ponto de vista único explorar
+• GANCHO (primeira linha): texto de gancho pronto para usar
+• PLATAFORMA PRIORITÁRIA: Instagram, LinkedIn ou ambos
+
+Ao final, inclua 3 PAUTAS BÔNUS baseadas em tendências internacionais de ${selectedNiche} que ainda não chegaram ao Brasil — ideais para ser o primeiro a falar sobre o assunto.
+
+Use português brasileiro. Seja específico, prático e orientado a performance.`;
+
+  try {
+    const resp = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-20250514',
+        max_tokens: 1000,
+        messages: [{ role: 'user', content: prompt }]
+      })
+    });
+    const data = await resp.json();
+    const text = data.content[0].text;
+    renderOutputBlocks(output, text, 'Agenda');
+  } catch(e) {
+    output.innerHTML = `<div class="error-msg">⚠️ Erro ao conectar com a API. Tente novamente.</div>`;
+  }
+
+  btn.disabled = false;
+  btn.innerHTML = '<span>⚡ Gerar Agenda Completa</span>';
+}
+
+function clearAgenda() {
+  selectedDays = [];
+  document.querySelectorAll('.day-card').forEach(c => c.classList.remove('selected', 'has-content'));
+  const output = document.getElementById('agendaOutput');
+  output.classList.remove('visible');
+  output.innerHTML = '';
+}
+
+// =====================
+// DIFERENCIAL PANEL
+// =====================
+function selectAngle(card, angle) {
+  document.querySelectorAll('.angle-card').forEach(c => c.classList.remove('selected'));
+  card.classList.add('selected');
+  selectedAngle = angle;
+  document.getElementById('angleInput').value = angle;
+  document.getElementById('diferencialBtn').disabled = false;
+  document.getElementById('formHint').textContent = `✓ "${angle}" selecionado`;
+  document.getElementById('diferencialOutput').style.display = 'block';
+}
+
+async function runDiferencial() {
+  if (!selectedAngle) return;
+
+  const formato = document.getElementById('formatoEntrega').value;
+  const tema = document.getElementById('temaInput').value;
+  const tom = document.getElementById('tomVoz').value;
+
+  const btn = document.getElementById('diferencialBtn');
+  btn.disabled = true;
+  btn.innerHTML = '<span class="spinner"></span> Criando...';
+
+  const output = document.getElementById('diferencialOutput');
+  output.style.display = 'block';
+  output.innerHTML = `<div class="ai-output-label"><div class="ai-dot"></div>Gerando conteúdo diferenciado...</div>`;
+
+  const temaTexto = tema ? `Tema/ideia bruta: "${tema}"` : 'Use um tema relevante e atual para o nicho.';
+
+  const prompt = `Você é um especialista em criação de conteúdo para Instagram com foco em construção de autoridade. Crie conteúdo de alta performance para @jonathansachetto.
+
+CONTEXTO DO CRIADOR:
+- Empreendedor brasileiro, fundador de agência de marketing digital especializada em IA
+- Diferencial único: é o único criador no Brasil com a combinação de experiência prática em agência + domínio técnico de IA + visão de negócios
+- Linguagem: direta, sem enrolação, provoca reflexão sem ser arrogante
+- Não faz autoajuda. Fala de resultado, processo e visão de mercado
+
+ÂNGULO ESCOLHIDO: ${selectedAngle}
+FORMATO DE ENTREGA: ${formato}
+TOM DE VOZ: ${tom}
+${temaTexto}
+
+Gere o conteúdo completo no formato solicitado. Se for "Pacote completo", gere todos os formatos (Roteiro Reels 30s + Legenda de Feed + Sequência de 5 Stories).
+
+REGRAS ABSOLUTAS:
+- Gancho na primeira linha: deve parar o scroll
+- Sem hashtags genéricas (no máximo 3 específicas)
+- Sem "Me segue para mais dicas"
+- Português brasileiro coloquial mas inteligente
+- Mostrar que o criador JÁ FEZ, não que está apenas comentando
+- CTA que gera resposta ou salvamento, não follow
+
+Entregue o conteúdo pronto para publicar.`;
+
+  try {
+    const resp = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-20250514',
+        max_tokens: 1000,
+        messages: [{ role: 'user', content: prompt }]
+      })
+    });
+    const data = await resp.json();
+    const text = data.content[0].text;
+    renderOutputBlocks(output, text, formato);
+  } catch(e) {
+    output.innerHTML = `<div class="error-msg">⚠️ Erro ao conectar com a API. Tente novamente.</div>`;
+  }
+
+  btn.disabled = false;
+  btn.innerHTML = '<span>⚡ Gerar Conteúdo</span>';
+}
+
+function clearDiferencial() {
+  selectedAngle = '';
+  document.querySelectorAll('.angle-card').forEach(c => c.classList.remove('selected'));
+  document.getElementById('angleInput').value = '';
+  document.getElementById('temaInput').value = '';
+  document.getElementById('diferencialBtn').disabled = true;
+  document.getElementById('formHint').textContent = 'Selecione um ângulo para começar';
+  const output = document.getElementById('diferencialOutput');
+  output.style.display = 'none';
+  output.innerHTML = '';
+}
+
+// =====================
+// RENDER OUTPUT
+// =====================
+function renderOutputBlocks(container, text, label) {
+  const sections = text.split(/\n(?=\d+\.|#{1,3}\s|[A-Z]{2,}:|\*\*[A-Z])/);
+
+  if (sections.length <= 1) {
+    container.innerHTML = `
+      <div class="ai-output-label">✦ Análise gerada</div>
+      <div class="content-block">
+        <div class="content-block-title">${label}</div>
+        <button class="copy-btn" onclick="copyText(this, \`${text.replace(/`/g,'\\`')}\`)">Copiar</button>
+        <div class="content-block-body">${text}</div>
+      </div>
+    `;
+    return;
+  }
+
+  let html = `<div class="ai-output-label">✦ Análise completa gerada</div>`;
+  sections.forEach((sec, i) => {
+    if (sec.trim().length < 10) return;
+    const escaped = sec.trim().replace(/`/g, '\\`');
+    html += `
+      <div class="content-block">
+        <button class="copy-btn" onclick="copyText(this, \`${escaped}\`)">Copiar</button>
+        <div class="content-block-body">${sec.trim()}</div>
+      </div>
+    `;
+  });
+  container.innerHTML = html;
+}
+
+function copyText(btn, text) {
+  navigator.clipboard.writeText(text).then(() => {
+    btn.textContent = '✓ Copiado!';
+    btn.classList.add('copied');
+    setTimeout(() => {
+      btn.textContent = 'Copiar';
+      btn.classList.remove('copied');
+    }, 2000);
+  });
+}
+
+// =====================
+// TAB SWITCHING
+// =====================
+function switchTab(tab) {
+  document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+  event.currentTarget.classList.add('active');
+  document.getElementById(`panel-${tab}`).classList.add('active');
+}
+
+// =====================
+// BOOT
+// =====================
+initCreatorGrid();
+initWeekGrid();
+</script>
+</body>
+</html>
